@@ -1,8 +1,8 @@
 import asyncio
 import websockets
 
-from rocketchat_async.dispatcher import Dispatcher
-from rocketchat_async.methods import Connect, Login, GetChannels, SendMessage,\
+from .dispatcher import Dispatcher
+from .methods import Connect, Login, GetChannels, SendMessage,\
         SendReaction, SendTypingEvent, SubscribeToChannelMessages,\
         SubscribeToChannelChanges, Unsubscribe
 

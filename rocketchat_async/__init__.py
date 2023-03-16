@@ -1,1 +1,1 @@
-from rocketchat_async.core import RocketChat
+from .core import RocketChat
