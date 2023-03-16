@@ -12,23 +12,27 @@ class RocketChat:
 
     def __init__(self):
         self.user_id = None
-        self.username = None
         self._dispatcher = Dispatcher(verbose=False)
 
-    async def start(self, address, username, password):
+    async def start(self, address, username=None, password=None, token=None):
+        if token:
+            await self._start(address, token)
+        else:
+            await self._start(address, username, password)
+
+    async def _start(self, address, *args):
         ws_connected = asyncio.get_event_loop().create_future()
-        ws_connection = self._start(address, ws_connected)
+        ws_connection = self._start_ws(address, ws_connected)
         self._ws_connection_task = asyncio.create_task(ws_connection)
         await ws_connected
         # Connect and login.
         await self._connect()
-        self.user_id = await self._login(username, password)
-        self.username = username
+        self.user_id = await self._login(args)
 
     async def run_forever(self):
         await self.dispatch_task
 
-    async def _start(self, address, connected_fut):
+    async def _start_ws(self, address, connected_fut):
         try:
             async with websockets.connect(address) as websocket:
                 self.dispatch_task = self._dispatcher.run(websocket)
@@ -42,8 +46,8 @@ class RocketChat:
     async def _connect(self):
         await Connect.call(self._dispatcher)
 
-    async def _login(self, username, password):
-        return await Login.call(self._dispatcher, username, password)
+    async def _login(self, args):
+        return await Login.call(self._dispatcher, args)
 
     # --> Public API methods start here. <--
 

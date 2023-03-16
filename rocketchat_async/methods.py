@@ -30,31 +30,39 @@ class Login(RealtimeRequest):
     """Log in to the service."""
 
     @staticmethod
-    def _get_request_msg(msg_id, username, password):
-        pwd_digest = hashlib.sha256(password.encode()).hexdigest()
-        return {
+    def _get_request_msg(msg_id, args):
+        msg = {
             "msg": "method",
             "method": "login",
             "id": msg_id,
-            "params": [
+        }
+
+        if len(args) == 1:
+            msg["params"] = [{
+                "resume": args[0]
+            }]
+        else:
+            pwd_digest = hashlib.sha256(args[1].encode()).hexdigest()
+            msg["params"] = [
                 {
-                    "user": {"username": username},
+                    "user": {"username": args[0]},
                     "password": {
                         "digest": pwd_digest,
                         "algorithm": "sha-256"
                     }
                 }
             ]
-        }
+        return msg
 
     @staticmethod
     def _parse(response):
         return response['result']['id']
 
     @classmethod
-    async def call(cls, dispatcher, username, password):
+    async def call(cls, dispatcher, args):
         msg_id = cls._get_new_id()
-        msg = cls._get_request_msg(msg_id, username, password)
+
+        msg = cls._get_request_msg(msg_id, args)
         response = await dispatcher.call_method(msg, msg_id)
         return cls._parse(response)
 
@@ -179,15 +187,12 @@ class SubscribeToChannelMessages(RealtimeRequest):
     @staticmethod
     def _wrap(callback):
         def fn(msg):
-            event = msg['fields']['args'][0]  # TODO: This looks suspicious.
-            msg_id = event['_id']
-            channel_id = event['rid']
-            thread_id = event.get('tmid')
-            sender_id = event['u']['_id']
-            msg = event['msg']
-            qualifier = event.get('t')
-            return callback(channel_id, sender_id, msg_id, thread_id, msg,
-                            qualifier)
+            message = msg['fields']['args'][0]  # TODO: This looks suspicious.
+            msg_id = message['_id']
+            channel_id = message['rid']
+            sender_id = message['u']['_id']
+            return callback(channel_id, sender_id, msg_id,
+                            message)
         return fn
 
     @classmethod
