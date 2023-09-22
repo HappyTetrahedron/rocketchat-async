@@ -96,7 +96,7 @@ class SendMessage(RealtimeRequest):
     """Send a text message to a channel."""
 
     @staticmethod
-    def _get_request_msg(msg_id, channel_id, msg_text, thread_id=None):
+    def _get_request_msg(msg_id, channel_id, msg_text, kwargs):
         id_seed = f'{msg_id}:{time.time()}'
         msg = {
             "msg": "method",
@@ -110,14 +110,14 @@ class SendMessage(RealtimeRequest):
                 }
             ]
         }
-        if thread_id is not None:
-            msg["params"][0]["tmid"] = thread_id
+        for key, value in kwargs.items():
+            msg["params"][0][key] = value
         return msg
 
     @classmethod
-    async def call(cls, dispatcher, msg_text, channel_id, thread_id=None):
+    async def call(cls, dispatcher, msg_text, channel_id, kwargs):
         msg_id = cls._get_new_id()
-        msg = cls._get_request_msg(msg_id, channel_id, msg_text, thread_id)
+        msg = cls._get_request_msg(msg_id, channel_id, msg_text, kwargs)
         await dispatcher.call_method(msg, msg_id)
 
 

@@ -55,9 +55,9 @@ class RocketChat:
         """Get a list of channels user is currently member of."""
         return await GetChannels.call(self._dispatcher)
 
-    async def send_message(self, text, channel_id, thread_id=None):
+    async def send_message(self, text, channel_id, **kwargs):
         """Send a text message to a channel."""
-        await SendMessage.call(self._dispatcher, text, channel_id, thread_id)
+        await SendMessage.call(self._dispatcher, text, channel_id, kwargs)
 
     async def send_reaction(self, orig_msg_id, emoji):
         """Send a reaction to a specific message."""
